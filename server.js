@@ -19,15 +19,25 @@ const httpServer = http.createServer(app);
 const FRONTEND_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:3000',
+  'https://thakur-shop.vercel.app',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, cb) => {
+    if (!origin || FRONTEND_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error(`CORS blocked: ${origin}`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
 const io = new Server(httpServer, {
   cors: {
     origin: (origin, cb) => {
-      // Allow requests with no origin (mobile apps, curl, Postman)
       if (!origin || FRONTEND_ORIGINS.includes(origin)) return cb(null, true);
-      cb(new Error('Not allowed by CORS'));
+      cb(new Error(`CORS blocked: ${origin}`));
     },
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
@@ -36,13 +46,8 @@ const io = new Server(httpServer, {
 
 // ─── Security middleware ───────────────────────────────────────────────────────
 app.use(helmet());
-app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin || FRONTEND_ORIGINS.includes(origin)) return cb(null, true);
-    cb(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-}));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10kb' }));   // prevent large payload attacks
 app.use(mongoSanitize());                   // strip $ and . from req.body/query
 
@@ -233,8 +238,8 @@ io.on('connection', (socket) => {
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, () => {
-  console.log(`\n⚡ Thakur Electronics Backend → http://localhost:${PORT}`);
-  console.log(`📋 API  → http://localhost:${PORT}/api/requests`);
-  console.log(`🔐 Auth → http://localhost:${PORT}/api/auth/login\n`);
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n⚡ Thakur Electronics Backend → port ${PORT}`);
+  console.log(`📋 API  → /api/requests`);
+  console.log(`🔐 Auth → /api/auth/login\n`);
 });
