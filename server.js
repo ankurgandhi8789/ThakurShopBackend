@@ -23,12 +23,26 @@ const FRONTEND_ORIGINS = [
 ].filter(Boolean);
 
 const io = new Server(httpServer, {
-  cors: { origin: FRONTEND_ORIGINS, methods: ['GET', 'POST', 'PATCH', 'DELETE'] },
+  cors: {
+    origin: (origin, cb) => {
+      // Allow requests with no origin (mobile apps, curl, Postman)
+      if (!origin || FRONTEND_ORIGINS.includes(origin)) return cb(null, true);
+      cb(new Error('Not allowed by CORS'));
+    },
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    credentials: true,
+  },
 });
 
 // ─── Security middleware ───────────────────────────────────────────────────────
 app.use(helmet());
-app.use(cors({ origin: FRONTEND_ORIGINS }));
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || FRONTEND_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: '10kb' }));   // prevent large payload attacks
 app.use(mongoSanitize());                   // strip $ and . from req.body/query
 
@@ -66,6 +80,11 @@ async function getStats() {
   ]);
   return { total, pending, inProgress, completed };
 }
+
+// ─── Health check (Railway uses this to verify deployment) ──────────────────
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // ─── Auth Routes (public) ─────────────────────────────────────────────────────
 
