@@ -4,8 +4,10 @@ const RequestSchema = new mongoose.Schema(
   {
     name:        { type: String, required: true, trim: true },
     phone:       { type: String, required: true, trim: true },
+    houseNo:     { type: String, required: true, trim: true },
+    block:       { type: String, required: true, trim: true },
+    landmark:    { type: String, required: true, trim: true },
     address:     { type: String, required: true, trim: true },
-    landmark:    { type: String, default: '', trim: true },
     serviceType: { type: String, default: 'Other', trim: true },
     description: { type: String, default: '', trim: true },
     location: {

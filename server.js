@@ -123,15 +123,17 @@ app.get('/api/auth/me', auth, (req, res) => {
 
 // POST /api/requests  — customer submits a service request (NO auth needed)
 app.post('/api/requests', async (req, res) => {
-  const { name, phone, address, landmark, location, serviceType, description } = req.body;
-  if (!name || !phone || !address || !description)
-    return res.status(400).json({ success: false, message: 'Name, phone, address and description are required' });
+  const { name, phone, address, landmark, location, serviceType, description, houseNo, block } = req.body;
+  if (!name || !phone || !address || !description || !houseNo || !block || !landmark)
+    return res.status(400).json({ success: false, message: 'All fields are required' });
 
   const request = await Request.create({
     name: name.trim(),
     phone: phone.trim(),
-    address: address.trim(),
+    houseNo: houseNo?.trim() || '',
+    block: block?.trim() || '',
     landmark: landmark?.trim() || '',
+    address: address.trim(),
     serviceType: serviceType?.trim() || 'Other',
     description: description?.trim() || '',
     location: location || { lat: null, lng: null },
