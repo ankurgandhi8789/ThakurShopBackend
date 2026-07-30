@@ -18,7 +18,6 @@ const httpServer = http.createServer(app);
 
 const FRONTEND_ORIGINS = [
   'http://localhost:5173',
-  'http://localhost:3000',
   'https://thakur-shop.vercel.app',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
